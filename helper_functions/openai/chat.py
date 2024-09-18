@@ -1,9 +1,10 @@
 import openai
 from openai import OpenAI
+import os
 
+from helper_functions.internal.storage import read_from_storage_file
 
-with open('/Users/murguuu/Documents/Programming/ChekrdFlag/helper_functions/openai/key.txt', 'r') as file:
-    key = file.read().rstrip()
+key = read_from_storage_file('key.txt', [])
 client = OpenAI(api_key=key)
 from helper_functions.scraping.news import get_news
 from helper_functions.scraping.f1com import get_full_race_report, get_full_qualy_report
@@ -74,11 +75,11 @@ def get_news_summary() -> str:
     temperature=0.5)
     output = response.choices[0].message.content
     while len(output) > 280:
-        output = client.chat.completions.create(model="gpt-3.5-turbo",
+        output = client.chat.completions.create(model="gpt-4o",
         messages=[
-            {"role": "system", "content": "You are a Formula 1 AI reporter that posts on a twitter account."},
+            {"role": "system", "content": "You are a Formula 1 AI reporter that posts on a twitter account. You must have a slight bias towards Charles Leclerc and Ferrari if an article is about them."},
             {"role": "user",
              "content": "Please try to cut down in the number of characters of this tweet, while keeping its information intact: \n" + output},
         ],
-        temperature=0.5)['choices'][0]['message']['content']
+        temperature=0.5).choices[0].message.content
     return output

@@ -1,17 +1,19 @@
 import tweepy
 from selenium import webdriver
+
+from helper_functions.internal.storage import read_from_storage_file
 from helper_functions.scraping.scraping_utils import initialize_webdriver
 from datetime import datetime
 from datetime import timedelta
 from helper_functions.openai.chat import get_race_summary, get_qualy_summary, get_news_summary
 import fastf1 as ff1
-from helper_functions.internal.storage import *
+from helper_functions.internal.race_storage import *
 
-consumer_key = "yypmOvoSUhZLSMOQa2UInjeAg"
-consumer_secret = "7p7a8XbiZNIXylpHdWU4saEfO3LHVJdT29ihf4PWvNuPYSMc5M"
-access_token = "1709020547332399104-ocshunoOrwulPSfQduI6OT3jtG3pzD"
-access_token_secret = "o38NtxUkJ8FEKb4tSOMixom6TQ8flKjXpMlDwr7ARFdbI"
-bearer_token = "AAAAAAAAAAAAAAAAAAAAAJEhqQEAAAAAF451qsPv81cTBqc45BWxsglddTo%3DuzOj7JzjkD2XuE0R2U2RdsooXoF06oDki3MRGKZi85ZE5ZUFRi"
+consumer_key = read_from_storage_file('consumer_key.txt', [])
+consumer_secret = read_from_storage_file('consumer_secret.txt', [])
+access_token = read_from_storage_file('access_token.txt', [])
+access_token_secret = read_from_storage_file('access_token_secret.txt', [])
+bearer_token = read_from_storage_file('bearer_token.txt', [])
 
 client = tweepy.Client(bearer_token=bearer_token,
                        consumer_key=consumer_key,
@@ -71,6 +73,11 @@ def create_news_post():
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.abspath(os.path.join(current_dir, '../../'))
         file_path = os.path.join(project_root, 'storage', 'log.txt')
+        if not os.path.exists(file_path):
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, 'w') as f:
+                f.write('')
         with open(file_path, 'a') as f:
             f.write(f"Posted news at {current_time}\n")
+        print("POSTED NEWS TWEET")
 
