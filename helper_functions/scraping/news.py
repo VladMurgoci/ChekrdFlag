@@ -96,6 +96,11 @@ def was_news_posted(link: str) -> bool:
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.abspath(os.path.join(current_dir, '../../'))
     file_path = os.path.join(project_root, 'storage', 'news.txt')
+    if not os.path.exists(file_path):
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as f:
+            f.write('')
+        return False
     with open(file_path, 'r') as f:
         links = [line.strip() for line in f.readlines()]
     return link.strip() in links
