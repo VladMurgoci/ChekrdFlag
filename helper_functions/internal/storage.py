@@ -1,56 +1,19 @@
-from numpy import genfromtxt
-import csv
-import numpy as np
 import os
 
-def init_race_catalogue(year):
-    np_data = np.zeros(2, dtype=int)
-    np.savetxt(f"storage/race_catalog_{year}.csv", np_data, delimiter=',')
-    return
-
-def get_current_race_idx(year):
-    file_name = f"storage/race_catalog_{year}.csv"
-    try:
-        data = np.genfromtxt(file_name, delimiter=",", dtype=int)
-        return data[1]
-    except FileNotFoundError:
-        # If the file does not exist, create it and initialize a NumPy array
-        init_race_catalogue(year)
-        return 0
-
-def get_current_qualy_idx(year):
-    file_name = f"storage/race_catalog_{year}.csv"
-    try:
-        data = np.genfromtxt(file_name, delimiter=',', dtype=int)
-        return data[0]
-    except FileNotFoundError:
-        init_race_catalogue(year)
-        return 0
-
-def fill_race(year, race_idx):
+def read_from_storage_file(file_name: str, directories: list[str]):
     """
-    Fills the race txt pointer with the next race to be reported
-    @param year: Year of the race
-    @param race_idx: Index of the next race
-    @return: null
+    Read the content of a file from the storage directory
+    @param file_name: name of the file
+    @param directories: list of directories to search for the file
+    @return: content of the file
     """
-    file_name = f"storage/race_catalog_{year}.csv"
-    if os.path.isfile(file_name):
-        data = np.genfromtxt(file_name, delimiter=",", dtype=int)
-        data[1] = race_idx
-        np.savetxt(file_name, data, delimiter=",")
-    else:
-        init_race_catalogue(year)
-        fill_race(year, race_idx)
-    return
-
-def fill_qualy(year, qualy_idx):
-    file_name = f"storage/race_catalog_{year}.csv"
-    if os.path.isfile(file_name):
-        data = np.genfromtxt(file_name, delimiter=",", dtype=int)
-        data[0] = qualy_idx
-        np.savetxt(file_name, data, delimiter=",")
-    else:
-        init_race_catalogue(year)
-        fill_qualy(year, qualy_idx)
-    return
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(current_dir, '../../'))
+    if len(directories) == 0:
+        directories = ['']
+    for directory in directories:
+        file_path = os.path.join(project_root, 'storage', directory, file_name)
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as file:
+                return file.read()
+    return None
