@@ -1,4 +1,6 @@
 import fastf1.core
+from PIL.ImageColor import colormap
+from fastf1.plotting import get_driver_color
 from helper_functions.telemetry.lap_telemetry import get_session_top_speeds
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,7 +9,7 @@ from matplotlib.colors import Normalize
 import numpy.ma as ma
 import os
 
-def plot_session_top_n_speeds(session: fastf1.core.Session, top_n: int = 15):
+def plot_session_driver_top_n_speeds(session: fastf1.core.Session, top_n: int = 15):
     top_speeds_dict = get_session_top_speeds(session, top_n)
     sorted_top_speeds_dict = sorted(top_speeds_dict.items(), key=lambda x: x[1][0][0], reverse=True)
     sorted_top_speeds = list(map(lambda x: list(map(lambda y: y[0], x[1])), sorted_top_speeds_dict))
@@ -63,3 +65,50 @@ def plot_session_top_n_speeds(session: fastf1.core.Session, top_n: int = 15):
     if session.api_path:
         os.makedirs(f"../../storage/plots/{session.api_path}", exist_ok=True)
     plt.savefig(f"../../storage/plots/{session.api_path}/n_top_speeds.png")
+
+def plot_session_driver_top_speeds(session: fastf1.core.Session):
+    top_speeds_dict = get_session_top_speeds(session, 1)
+    sorted_top_speeds_dict = sorted(top_speeds_dict.items(), key=lambda x: x[1][0][0], reverse=True)
+    sorted_top_speeds = list(map(lambda x: x[1][0][0], sorted_top_speeds_dict))
+    sorted_driver_abbreviations = list(map(lambda x: session.get_driver(x[0])['Abbreviation'], sorted_top_speeds_dict))
+    sorted_drs_statuses = list(map(lambda x: x[1][0][1], sorted_top_speeds_dict))
+
+    # Set driver colors
+    driver_colors = []
+    for i in range(len(sorted_driver_abbreviations)):
+        driver_colors.append(get_driver_color(sorted_driver_abbreviations[i], session))
+
+    # Create bar chart
+    fig, ax = plt.subplots()
+    ax.bar(sorted_driver_abbreviations, sorted_top_speeds, color=driver_colors)
+    ax.set_title(f"{session.session_info['Meeting']['Name']} {session.session_info['StartDate'].year} - {session.session_info['Name']} - Top Speed (km/h)")
+    ax.set_ylim(sorted_top_speeds[-1] - 10, sorted_top_speeds[0] + 10)
+
+    # Add DRS usage indicator
+    for i in range(len(sorted_drs_statuses)):
+        if sorted_drs_statuses[i]:
+            ax.text(i, sorted_top_speeds[i] - 10, 'DRS', ha='center', va='center', color='black')
+
+    # Add text at top of each bar with speed
+    for i in range(len(sorted_top_speeds)):
+        ax.text(i, sorted_top_speeds[i] + 0.5 , sorted_top_speeds[i], ha='center', va='center', color='black')
+
+    # Remove axis spines
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+
+    # Remove y-axis
+    ax.yaxis.set_ticks([])
+
+    fig.set_size_inches(18, 9)
+    if session.api_path:
+        os.makedirs(f"../../storage/plots/{session.api_path}", exist_ok=True)
+    plt.savefig(f"../../storage/plots/{session.api_path}/top_speeds.png")
+
+
+if __name__ == "__main__":
+    session = fastf1.get_session(2024, "Brazil", "R")
+    session.load()
+    plot_session_top_speeds(session)
