@@ -1,9 +1,5 @@
 import fastf1 as ff1
 import fastf1.core
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib.patches import Rectangle
-from matplotlib.colors import Normalize
 
 def get_lap_top_speed(lap: fastf1.core.Lap) -> int:
     """
@@ -32,7 +28,7 @@ def get_laps_top_speeds(driver_laps: fastf1.core.Laps, top_n: int = 15) -> list:
             top_speeds.append((-1, False))
     return sorted(top_speeds, reverse=True)[:top_n]
 
-def get_session_top_speeds(session: fastf1.core.Session, top_n: int = 15) -> dict:
+def get_session_driver_top_speeds(session: fastf1.core.Session, top_n: int = 15) -> dict:
     """
     Get the top speeds of the drivers in a session
     E.g. dict:
@@ -52,6 +48,23 @@ def get_session_top_speeds(session: fastf1.core.Session, top_n: int = 15) -> dic
         if len(driver_top_speeds) > 0:
             top_speeds[driver] = driver_top_speeds
     return top_speeds
+
+def get_session_team_top_1_speeds(session: fastf1.core.Session) -> list:
+    """
+    Get the top speed of the fastest lap of each team in a session
+    @param session: F1 session object
+    @return: Decreasingly sorted list of tuples with team name and top speed
+    """
+    team_top_speeds = {}
+    for driver in session.drivers:
+        team = session.get_driver(driver)['TeamName']
+        driver_laps = session.laps.pick_driver(driver)
+        driver_top_speeds = get_laps_top_speeds(driver_laps, 1)
+        if len(driver_top_speeds) > 0:
+            if team not in team_top_speeds or driver_top_speeds[0][0] > team_top_speeds[team][0]:
+                team_top_speeds[team] = driver_top_speeds[0]
+    sorted_top_speeds = sorted(team_top_speeds.items(), key=lambda x: x[1][0], reverse=True)
+    return sorted_top_speeds
 
 def lap_has_drs(lap: fastf1.core.Lap) -> bool:
     """
