@@ -1,5 +1,6 @@
 import fastf1 as ff1
 import fastf1.core
+from fastf1.plotting import get_team_name
 
 def get_lap_top_speed(lap: fastf1.core.Lap) -> int:
     """
@@ -58,6 +59,10 @@ def get_session_team_top_1_speeds(session: fastf1.core.Session) -> list:
     team_top_speeds = {}
     for driver in session.drivers:
         team = session.get_driver(driver)['TeamName']
+        try:
+            team = get_team_name(team, session, short=True)
+        except KeyError:
+            team = team
         driver_laps = session.laps.pick_driver(driver)
         driver_top_speeds = get_laps_top_speeds(driver_laps, 1)
         if len(driver_top_speeds) > 0:
