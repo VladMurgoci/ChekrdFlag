@@ -49,7 +49,7 @@ def get_session_top_speeds(session: fastf1.core.Session, top_n: int = 15) -> dic
     for driver in session.drivers:
         driver_laps = session.laps.pick_driver(driver)
         driver_top_speeds = get_laps_top_speeds(driver_laps, top_n)
-        if len(driver_top_speeds) > 2:
+        if len(driver_top_speeds) > 0:
             top_speeds[driver] = driver_top_speeds
     return top_speeds
 
