@@ -1,7 +1,7 @@
 import fastf1.core
 from PIL.ImageColor import colormap
 from fastf1.plotting import get_driver_color
-from helper_functions.telemetry.lap_telemetry import get_session_top_speeds
+from helper_functions.telemetry.lap_telemetry import get_session_driver_top_speeds
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Rectangle
@@ -10,7 +10,7 @@ import numpy.ma as ma
 import os
 
 def plot_session_driver_top_n_speeds(session: fastf1.core.Session, top_n: int = 15):
-    top_speeds_dict = get_session_top_speeds(session, top_n)
+    top_speeds_dict = get_session_driver_top_speeds(session, top_n)
     sorted_top_speeds_dict = sorted(top_speeds_dict.items(), key=lambda x: x[1][0][0], reverse=True)
     sorted_top_speeds = list(map(lambda x: list(map(lambda y: y[0], x[1])), sorted_top_speeds_dict))
     sorted_driver_abbreviations = list(map(lambda x: session.get_driver(x[0])['Abbreviation'], sorted_top_speeds_dict))
@@ -67,7 +67,7 @@ def plot_session_driver_top_n_speeds(session: fastf1.core.Session, top_n: int = 
     plt.savefig(f"../../storage/plots/{session.api_path}/n_top_speeds.png")
 
 def plot_session_driver_top_speeds(session: fastf1.core.Session):
-    top_speeds_dict = get_session_top_speeds(session, 1)
+    top_speeds_dict = get_session_driver_top_speeds(session, 1)
     sorted_top_speeds_dict = sorted(top_speeds_dict.items(), key=lambda x: x[1][0][0], reverse=True)
     sorted_top_speeds = list(map(lambda x: x[1][0][0], sorted_top_speeds_dict))
     sorted_driver_abbreviations = list(map(lambda x: session.get_driver(x[0])['Abbreviation'], sorted_top_speeds_dict))
@@ -111,4 +111,3 @@ def plot_session_driver_top_speeds(session: fastf1.core.Session):
 if __name__ == "__main__":
     session = fastf1.get_session(2024, "Brazil", "R")
     session.load()
-    plot_session_top_speeds(session)
