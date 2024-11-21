@@ -1,7 +1,7 @@
 import fastf1.core
 from PIL.ImageColor import colormap
-from fastf1.plotting import get_driver_color
-from helper_functions.telemetry.lap_telemetry import get_session_driver_top_speeds
+from fastf1.plotting import get_driver_color, get_team_color
+from helper_functions.telemetry.lap_telemetry import get_session_driver_top_speeds, get_session_team_top_1_speeds
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Rectangle
@@ -60,7 +60,7 @@ def plot_session_driver_top_n_speeds(session: fastf1.core.Session, top_n: int = 
     bottom_text = "Laps Sorted by Maximum Speed (15 Best Shown). \n White Borders Indicate DRS Usage."
     plt.figtext(0.5, 0.08, bottom_text, ha='center', va='center')
 
-    fig.set_size_inches(18, 9)
+    fig.set_size_inches(12, 12)
     plt.title(title)
     if session.api_path:
         os.makedirs(f"../../storage/plots/{session.api_path}", exist_ok=True)
@@ -102,12 +102,42 @@ def plot_session_driver_top_speeds(session: fastf1.core.Session):
     # Remove y-axis
     ax.yaxis.set_ticks([])
 
-    fig.set_size_inches(18, 9)
+    fig.set_size_inches(12, 12)
     if session.api_path:
         os.makedirs(f"../../storage/plots/{session.api_path}", exist_ok=True)
     plt.savefig(f"../../storage/plots/{session.api_path}/top_speeds.png")
 
 
-if __name__ == "__main__":
-    session = fastf1.get_session(2024, "Brazil", "R")
-    session.load()
+def plot_session_team_top_speeds(session: fastf1.core.Session):
+    team_top_speeds = get_session_team_top_1_speeds(session)
+    team_names = list(map(lambda x: x[0], team_top_speeds))
+    top_speeds = list(map(lambda x: x[1][0], team_top_speeds))
+
+    # Set team colors
+    team_colors = []
+    for i in range(len(team_names)):
+        team_colors.append(get_team_color(team_names[i], session))
+
+    # Create bar chart
+    fig, ax = plt.subplots()
+    ax.bar(team_names, top_speeds, color=team_colors)
+    ax.set_title(f"{session.session_info['Meeting']['Name']} {session.session_info['StartDate'].year} - {session.session_info['Name']} - Top Speed (km/h) by Team")
+    ax.set_ylim(top_speeds[-1] - 10, top_speeds[0] + 10)
+
+    # Add text at top of each bar with speed
+    for i in range(len(top_speeds)):
+        ax.text(i, top_speeds[i] + 0.5, top_speeds[i], ha='center', va='center', color='black')
+
+    # Remove axis spines
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+
+    # Remove y-axis
+    ax.yaxis.set_ticks([])
+
+    fig.set_size_inches(12, 12)
+    if session.api_path:
+        os.makedirs(f"../../storage/plots/{session.api_path}", exist_ok=True)
+    plt.savefig(f"../../storage/plots/{session.api_path}/team_top_speeds.png")
